@@ -59,7 +59,13 @@ UserResponse = __decorate([
     (0, type_graphql_1.ObjectType)()
 ], UserResponse);
 let UserResolver = class UserResolver {
-    async register(options, { em }) {
+    me({ em, req }) {
+        if (!req.session.userId) {
+            return null;
+        }
+        return em.findOne(User_1.User, { id: req.session.userId });
+    }
+    async register(options, { em, req }) {
         if (options.username.length <= 2) {
             return {
                 errors: [
@@ -83,16 +89,17 @@ let UserResolver = class UserResolver {
             await em.persistAndFlush(user);
         }
         catch (err) {
-            console.log(err);
             if (err.code == "23505") {
                 return {
                     errors: [{ field: "username", message: "username already exists" }],
                 };
             }
         }
+        req.session.userId = user.id;
+        console.log("session", req.session);
         return { user };
     }
-    async login(options, { em, req }) {
+    async login(options, { em, req, res }) {
         const user = await em.findOne(User_1.User, {
             username: options.username,
         });
@@ -104,6 +111,7 @@ let UserResolver = class UserResolver {
         const verify = await argon2_1.default.verify(user.password, options.password);
         if (verify) {
             req.session.userId = user.id;
+            console.log("session", req.session);
             return {
                 user,
             };
@@ -117,6 +125,13 @@ let UserResolver = class UserResolver {
         }
     }
 };
+__decorate([
+    (0, type_graphql_1.Query)(() => User_1.User, { nullable: true }),
+    __param(0, (0, type_graphql_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], UserResolver.prototype, "me", null);
 __decorate([
     (0, type_graphql_1.Mutation)(() => UserResponse),
     __param(0, (0, type_graphql_1.Arg)("options")),

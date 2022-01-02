@@ -6,6 +6,7 @@ import {
   InputType,
   Mutation,
   ObjectType,
+  Query,
   Resolver,
 } from "type-graphql";
 import { MyContext } from "src/types";
@@ -40,10 +41,20 @@ class UserResponse {
 
 @Resolver()
 export class UserResolver {
+  @Query(() => User, { nullable: true })
+  me(@Ctx() { em, req }: MyContext) {
+    // you are not logged in
+    if (!req.session.userId) {
+      return null;
+    }
+
+    return em.findOne(User, { id: req.session.userId });
+  }
+
   @Mutation(() => UserResponse)
   async register(
     @Arg("options") options: UsernamePasswordInput,
-    @Ctx() { em }: MyContext
+    @Ctx() { em, req }: MyContext
   ): Promise<UserResponse> {
     if (options.username.length <= 2) {
       return {
@@ -67,7 +78,6 @@ export class UserResolver {
     try {
       await em.persistAndFlush(user);
     } catch (err) {
-      console.log(err);
       // duplicate name error
       if (err.code == "23505") {
         return {
@@ -75,13 +85,16 @@ export class UserResolver {
         };
       }
     }
+    req.session!.userId = user.id;
+    console.log("session", req.session);
+
     return { user };
   }
 
   @Mutation(() => UserResponse)
   async login(
     @Arg("options") options: UsernamePasswordInput,
-    @Ctx() { em, req }: MyContext
+    @Ctx() { em, req, res }: MyContext
   ): Promise<UserResponse> {
     const user = await em.findOne(User, {
       username: options.username,
@@ -94,6 +107,8 @@ export class UserResolver {
     const verify = await argon2.verify(user.password, options.password);
     if (verify) {
       req.session.userId = user.id;
+      console.log("session", req.session);
+
       return {
         user,
       };

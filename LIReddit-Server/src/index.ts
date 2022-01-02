@@ -2,6 +2,7 @@ import { MikroORM } from "@mikro-orm/core";
 import { _prod_ } from "./constants";
 import microConfig from "./mikro-orm.config";
 import express from "express";
+import cors from "cors";
 import { ApolloServer } from "apollo-server-express";
 import { buildSchema } from "type-graphql";
 import { HelloResolver } from "./resolvers/hello";
@@ -29,6 +30,8 @@ const main = async () => {
 
   const RedisStore = connectRedis(session);
   const redisClient = redis.createClient();
+  app.use(cors());
+
   app.use(
     session({
       name: "qid",
@@ -40,7 +43,7 @@ const main = async () => {
         maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 years,
         httpOnly: true,
         secure: _prod_,
-        sameSite: "none",
+        sameSite: "lax",
       },
       secret: "fnwkafhajbkfdajbkfbdhjkahbjfadhjbadfhbjkadbfhjk",
       resave: false,
@@ -61,7 +64,10 @@ const main = async () => {
   });
 
   await apolloServer.start();
-  apolloServer.applyMiddleware({ app });
+  apolloServer.applyMiddleware({
+    app,
+    cors: false,
+  });
 
   app.listen(4000, () => {
     console.log("server started on localhost:4000");
