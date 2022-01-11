@@ -8,28 +8,13 @@ import {
   Text,
 } from "@chakra-ui/react";
 import NextLink from "next/link";
+import { NavBar } from "../components/NavBar";
+import { useMeQuery } from "../generated/graphql";
+import { withUrqlClient } from "next-urql";
+import { createUrqlClient } from "../utils/createUrqlClient";
 
 const Index = () => {
-  return (
-    <Stack spacing={8}>
-      <Flex key="1" p={5} shadow="md" borderWidth="1px">
-        <Box flex={1}>
-          <NextLink href="/post/[id]" as={`/post/1`}>
-            <Link>
-              <Heading fontSize="xl">1eeee</Heading>
-            </Link>
-          </NextLink>
-          <Text>posted by eeeee</Text>
-          <Flex align="center">
-            <Text flex={1} mt={4}>
-              dddddddddd
-            </Text>
-            <Box ml="auto"></Box>
-          </Flex>
-        </Box>
-      </Flex>
-    </Stack>
-  );
+  return <div className="">hi</div>;
 };
 
-export default Index;
+export default withUrqlClient(createUrqlClient, { ssr: true })(Index);

@@ -1,0 +1,7 @@
+fragment RegularUser on User {
+  id
+  createdAt
+  updatedAt
+  username
+  email
+}

@@ -6,9 +6,9 @@ import InputField from "../components/InputField";
 import { useLoginMutation } from "../generated/graphql";
 import { toErrorMap } from "../utils/toErrorMap";
 import { useRouter } from "next/router";
-// import { withUrqlClient } from "next-urql";
-// import { createUrqlClient } from "../utils/createUrqlClient";
+import { withUrqlClient } from "next-urql";
 import NextLink from "next/link";
+import { createUrqlClient } from "../utils/createUrqlClient";
 // import { withApollo } from "../utils/withApollo";
 
 const Login: React.FC<{}> = ({}) => {
@@ -39,7 +39,7 @@ const Login: React.FC<{}> = ({}) => {
               router.push(router.query.next);
             } else {
               // worked
-              //   router.push("/");
+              router.push("/");
             }
           }
         }}
@@ -79,4 +79,4 @@ const Login: React.FC<{}> = ({}) => {
   );
 };
 
-export default Login;
+export default withUrqlClient(createUrqlClient)(Login);
